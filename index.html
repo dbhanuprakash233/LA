@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FEM - Linear Algebra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #2e5aac;
+      --accent-hover: #20427e;
+      --bg-light: #f8f9fa;
+      --bg-dark: #1c1f26;
+      --text-light: #1b1b1b;
+      --text-dark: #e6e6e6;
+      --muted-light: #6c757d;
+      --muted-dark: #adb5bd;
+      --table-header-light: #dee2e6;
+      --table-header-dark: #2f3540;
+      --table-row-light: #f1f3f5;
+      --table-row-dark: #2a2f39;
+      --border-light: #ced4da;
+      --border-dark: #3a3f4b;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      background: linear-gradient(-45deg, #f8f9fa, #e9ecef, #dee2e6, #f1f3f5);
+      background-size: 400% 400%;
+      animation: gradientMove 20s ease infinite;
+      color: var(--text-light);
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      background: linear-gradient(-45deg, #1c1f26, #2a2f39, #23272f, #2f3540);
+      background-size: 400% 400%;
+      animation: gradientMove 30s ease infinite;
+      color: var(--text-dark);
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -220px;
+      width: 200px;
+      height: 100%;
+      background: #fff;
+      border-right: 1px solid var(--border-light);
+      padding: 20px;
+      box-sizing: border-box;
+      transition: left 0.3s ease;
+      z-index: 1000;
+    }
+    body.dark .sidebar {
+      background: #23272f;
+      border-color: var(--border-dark);
+    }
+    .sidebar.open { left: 0; }
+    .sidebar h2 {
+      font-family: 'Merriweather', serif;
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: var(--accent);
+    }
+    body.dark .sidebar h2 { color: #92b4f2; }
+    .sidebar nav a {
+      display: block;
+      margin-bottom: 10px;
+      text-decoration: none;
+      color: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    .sidebar nav a:hover { color: var(--accent); }
+
+    /* Hamburger button */
+    .hamburger {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      font-size: 1.5rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      z-index: 1100;
+    }
+    .hamburger:hover { background: var(--accent-hover); }
+
+    /* Main container */
+    .container {
+      flex: 1;
+      padding: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 30px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--border-light);
+    }
+    body.dark header { border-color: var(--border-dark); }
+    header img { height: 70px; border-radius: 6px; }
+    .header-text h1 {
+      font-family: 'Merriweather', serif;
+      font-size: 1.9rem;
+      margin: 0;
+      color: var(--accent);
+    }
+    body.dark .header-text h1 { color: #92b4f2; }
+    .header-text p {
+      margin: 4px 0;
+      font-size: 0.95rem;
+      color: var(--muted-light);
+    }
+    body.dark .header-text p { color: var(--muted-dark); }
+
+    .content-card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    body.dark .content-card {
+      background: #23272f;
+      border-color: var(--border-dark);
+    }
+    h2 {
+      font-family: 'Merriweather', serif;
+      font-size: 1.4rem;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+    }
+    body.dark h2 {
+      color: #92b4f2;
+      border-color: #92b4f2;
+    }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.95rem; }
+    th, td { padding: 12px; text-align: center; border: 1px solid var(--border-light); }
+    body.dark th, body.dark td { border-color: var(--border-dark); }
+    th { background: var(--table-header-light); font-weight: 600; }
+    body.dark th { background: var(--table-header-dark); color: var(--text-dark); }
+    tr:nth-child(even) td { background: var(--table-row-light); }
+    body.dark tr:nth-child(even) td { background: var(--table-row-dark); }
+
+    a.link-button {
+      display: inline-block;
+      padding: 8px 16px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: background 0.3s;
+    }
+    a.link-button:hover { background: var(--accent-hover); }
+    .button-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 12px; }
+
+    /* Instructions */
+    .instructions { font-size: 0.95rem; background: #f1f3f5; padding: 16px; border-radius: 8px; }
+    body.dark .instructions { background: #2a2f39; }
+
+    /* Deadlines section */
+    .deadlines { display: grid; gap: 16px; }
+    .deadline-card {
+      background: #fff3cd;
+      border-left: 6px solid #ffc107;
+      padding: 14px 18px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    body.dark .deadline-card {
+      background: #3a3320;
+      border-left-color: #ffca2c;
+      color: #ffe8a1;
+    }
+    .deadline-card strong { display: block; font-size: 1rem; margin-bottom: 4px; }
+
+    h3 { margin-top: 40px; font-size: 0.9rem; font-style: italic; text-align: right; color: var(--muted-light); }
+    body.dark h3 { color: var(--muted-dark); }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      padding: 8px 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 1100;
+    }
+    .theme-toggle:hover { background: var(--accent-hover); }
+
+    @media (max-width: 750px) {
+      header { flex-direction: column; text-align: center; }
+      .header-text h1 { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>Navigation</h2>
+    <nav>
+      <a href="#resources">📘 Resources</a>
+      <a href="#teaching">📑 Teaching</a>
+      <a href="#assignments">📝 Assignments</a>
+      <a href="#deadlines">⏰ Deadlines</a>
+      <a href="#instructions">📌 Instructions</a>
+    </nav>
+  </div>
+
+  <!-- Buttons -->
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+  <div class="container">
+    <header>
+      <img src="VignanLogo.jpeg" alt="Institute Logo">
+      <div class="header-text">
+        <h1>Linear Algebra (25MT103)</h1>
+        <p><strong>Instructor:</strong> <a href="https://Site.github.io" target="_blank" class="link-button">Dr. D B P</a></p>
+        <p>Assistant Professor, Department of Mathematics and Statistics, VFSTR, Guntur, India.</p>
+      </div>
+    </header>
+
+    <div class="content-card" id="resources">
+      <h2>Course Resources</h2>
+      <div class="button-row">
+        <a href="material/Syllabus.pdf" target="_blank" class="link-button">Syllabus</a>
+        <a href="material/PODocument.pdf" target="_blank" class="link-button">Program Outcomes</a>
+        <a href="material/Academic_Calendar.pdf" target="_blank" class="link-button">Academic Calendar</a>
+      </div>
+    </div>
+
+    <div class="content-card" id="teaching">
+      <h2>Teaching Materials</h2>
+      <table>
+        <thead>
+          <tr><th>Concept</th><th>Lecture Notes</th><th>Tutorial Questions</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Unit 1: Matrices</td><td></td><td></td></tr>
+          <tr>
+            <td>Gaussian Elimination</td>
+            <td><a class="link-button" href="material/1_Gaussian_Elimination_Slides.pdf">Material</a></td>
+            <td><a class="link-button" href="material/1_Gaussian_Elimination_Tutorial_Questions.pdf">Problems</a></td>
+          </tr>
+          <tr>
+            <td>LU Decomposition</td>
+            <td><a class="link-button" href="material/2_LU_Decomposition_Slides.pdf">Material</a></td>
+            <td><a class="link-button" href="material/2_LU_Decomposition_Tutorial_Questions.pdf">Problems</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="content-card" id="assignments">
+      <h2>Assignments</h2>
+      <table>
+        <thead>
+          <tr><th>Section-7</th><th>Section-14</th><th>Section-21</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="link-button" href="assignments/LA7_Assignment1.pdf">Assignment 1</a></td>
+            <td><a class="link-button" href="assignments/LA14_Assignment1.pdf">Assignment 1</a></td>
+            <td><a class="link-button" href="assignments/LA21_Assignment1.pdf">Assignment 1</a></td>
+          </tr>
+          <tr>
+            <td><a class="link-button" href="assignments/LA7_Assignment2.pdf">Assignment 2</a></td>
+            <td><a class="link-button" href="assignments/LA14_Assignment2.pdf">Assignment 2</a></td>
+            <td><a class="link-button" href="assignments/LA21_Assignment2.pdf">Assignment 2</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="content-card" id="deadlines">
+      <h2>Upcoming Deadlines</h2>
+      <div class="deadlines">
+        <div class="deadline-card">
+          <strong>Assignment 1 & 2</strong>
+          Submit by Monday, October 3, 2025
+        </div>
+        <div class="deadline-card">
+          <strong>Quiz 1</strong>
+          Scheduled for Friday, October 10, 2025
+        </div>
+        <div class="deadline-card">
+          <strong>Midterm Exam</strong>
+          Wednesday, October 22, 2025
+        </div>
+      </div>
+    </div>
+
+    <div class="content-card instructions" id="instructions">
+      <h2>Common Instructions</h2>
+      <ul>
+        <li>Submit assignment 1 and 2 by Monday, October 3, 2025.</li>
+        <li>Include your Name, Section number and Registration number on all submissions.</li>
+        <li>Each assignment should be submitted in A4 sheets. Staple each assignment. Write on both sides of A4 sheet. Draw margins on all sides.</li>
+        <li>Late submissions require prior approval.</li>
+      </ul>
+    </div>
+
+    <h3>Last Updated: September 23, 2025</h3>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+    }
+    function setTheme(isDark) {
+      document.body.classList.toggle('dark', isDark);
+      document.querySelector('.theme-toggle').textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+    function toggleTheme() {
+      setTheme(!document.body.classList.contains('dark'));
+    }
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        setTheme(savedTheme === 'dark');
+      } else {
+        setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+      }
+    })();
+  </script>
+</body>
+</html>
